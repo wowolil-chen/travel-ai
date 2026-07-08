@@ -1,24 +1,51 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Chat from "./pages/Chat";
-import History from "./pages/History";
+
+import ProtectedRoute from "./router/ProtectedRoute";
+import PublicRoute from "./router/PublicRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 默认跳到登录 */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* 首页 */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <Route path="/login" element={<Login />} />
+        {/* 登录 */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
 
-        <Route path="/register" element={<Register />} />
+        {/* 注册 */}
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
 
-        <Route path="/chat" element={<Chat />} />
+        {/* 聊天 */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
 
-        <Route path="/history" element={<History />} />
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
