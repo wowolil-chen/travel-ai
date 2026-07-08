@@ -1,13 +1,26 @@
 import { useState } from "react";
-import { Button, Card, Form, Input, Typography, message } from "antd";
-import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Typography,
+  message,
+} from "antd";
+import {
+  UserOutlined,
+  LockOutlined,
+} from "@ant-design/icons";
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
-import { login } from "../api/auth";
-import { saveLogin } from "../utils/storage";
+import { register } from "../api/auth";
+
 const { Title, Text } = Typography;
 
-function Login() {
+function Register() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -16,20 +29,20 @@ function Login() {
     try {
       setLoading(true);
 
-      const res = await login(values);
+      const data = {
+        username: values.username,
+        nickname: values.nickname,
+        password: values.password,
+      };
 
-      const data = res.data;
+      await register(data);
 
-      // 保存登录信息
-      saveLogin(data);
+      message.success("注册成功，请登录");
 
-      message.success("登录成功");
-
-      // 跳转聊天页面
-      navigate("/chat");
+      navigate("/login");
     } catch (error) {
       message.error(
-        error.response?.data?.detail || "登录失败"
+        error.response?.data?.detail || "注册失败"
       );
     } finally {
       setLoading(false);
@@ -71,7 +84,7 @@ function Login() {
             marginBottom: 30,
           }}
         >
-          智能旅游规划助手
+          创建你的账号
         </Text>
 
         <Form
@@ -97,6 +110,23 @@ function Login() {
           </Form.Item>
 
           <Form.Item
+            label="昵称"
+            name="nickname"
+            rules={[
+              {
+                required: true,
+                message: "请输入昵称",
+              },
+            ]}
+          >
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="请输入昵称"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item
             label="密码"
             name="password"
             rules={[
@@ -104,11 +134,47 @@ function Login() {
                 required: true,
                 message: "请输入密码",
               },
+              {
+                min: 6,
+                message: "密码长度不能少于6位",
+              },
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
               placeholder="请输入密码"
+              size="large"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="确认密码"
+            name="confirmPassword"
+            dependencies={["password"]}
+            rules={[
+              {
+                required: true,
+                message: "请再次输入密码",
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (
+                    !value ||
+                    getFieldValue("password") === value
+                  ) {
+                    return Promise.resolve();
+                  }
+
+                  return Promise.reject(
+                    new Error("两次密码输入不一致")
+                  );
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="请再次输入密码"
               size="large"
             />
           </Form.Item>
@@ -120,17 +186,19 @@ function Login() {
             block
             loading={loading}
           >
-            登录
+            注册
           </Button>
 
           <div
             style={{
-              textAlign: "center",
               marginTop: 20,
+              textAlign: "center",
             }}
           >
-            没有账号？
-            <Link to="/register">立即注册</Link>
+            已有账号？
+            <Link to="/login">
+              立即登录
+            </Link>
           </div>
         </Form>
       </Card>
@@ -138,4 +206,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;
