@@ -1,21 +1,11 @@
 from fastapi import FastAPI
 
+from app.api.auth import router as auth_router
+from app.core.config import settings
+
 app = FastAPI(
-    title="Travel AI",
-    version="1.0.0",
-    description="旅游规划智能体"
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
 )
 
-
-@app.get("/")
-async def root():
-    return {
-        "message": "Travel AI Backend"
-    }
-
-
-@app.get("/health")
-async def health():
-    return {
-        "status": "ok"
-    }
+app.include_router(auth_router)

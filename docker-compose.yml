@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: travel_ai_postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_DB: travel_ai
+      POSTGRES_USER: cgq
+      POSTGRES_PASSWORD: 1qaz2wsX
+
+    ports:
+      - "8202:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cgq -d travel_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
