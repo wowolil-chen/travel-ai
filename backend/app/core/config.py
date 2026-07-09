@@ -12,11 +12,14 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
-    DEEPSEEK_API_KEY: str = ""
+    # Qwen
+    QWEN_API_KEY: str
+    QWEN_BASE_URL: str
+    QWEN_MODEL: str
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"
+        extra="ignore",
     )
 
 
