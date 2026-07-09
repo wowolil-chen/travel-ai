@@ -5,13 +5,13 @@ from app.services.chat_service import ChatService
 
 router = APIRouter(
     prefix="/api/chat",
-    tags=["聊天"],
+    tags=["Chat"]
 )
 
 
 @router.post(
     "",
-    response_model=ChatResponse,
+    response_model=ChatResponse
 )
 async def chat(data: ChatRequest):
 

@@ -1,3 +1,6 @@
+from app.ai.chains import travel_chain
+
+
 class ChatService:
 
     @staticmethod
@@ -6,4 +9,10 @@ class ChatService:
         AI聊天
         """
 
-        return f"收到你的问题：{message}，这是模拟回复。"
+        reply = await travel_chain.ainvoke(
+            {
+                "question": message
+            }
+        )
+
+        return reply
