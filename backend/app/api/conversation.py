@@ -8,7 +8,9 @@ from app.schemas.conversation import (
     ConversationCreate,
     ConversationResponse,
 )
+from app.schemas.message import MessageResponse
 from app.services.conversation_service import ConversationService
+from app.services.message_service import MessageService
 
 router = APIRouter(
     prefix="/api/conversations",
@@ -43,6 +45,33 @@ def get_conversations(
     return ConversationService.get_list(
         db=db,
         user_id=current_user.id,
+    )
+
+
+@router.get(
+    "/{conversation_id}/messages",
+    response_model=list[MessageResponse],
+)
+def get_messages(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    conversation = ConversationService.get_by_id(
+        db=db,
+        conversation_id=conversation_id,
+        user_id=current_user.id,
+    )
+
+    if conversation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="会话不存在",
+        )
+
+    return MessageService.get_messages(
+        db=db,
+        conversation_id=conversation_id,
     )
 
 

@@ -29,6 +29,10 @@ class MessageService:
         db: Session,
         conversation_id: int,
     ):
+        """
+        获取一个会话全部消息
+        """
+
         return (
             db.query(Message)
             .filter(
