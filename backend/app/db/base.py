@@ -2,7 +2,10 @@ from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):
-    """
-    所有 ORM 模型的基类
-    """
     pass
+
+
+# 导入所有模型，让 SQLAlchemy 注册
+import app.models.user
+import app.models.conversation
+import app.models.message

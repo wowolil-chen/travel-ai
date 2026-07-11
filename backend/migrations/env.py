@@ -12,7 +12,6 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # 导入 Base 和所有 Model
 from app.db.base import Base
-from app.models import *
 
 # Alembic Config 对象
 config = context.config

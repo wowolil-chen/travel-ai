@@ -13,9 +13,6 @@ class UserService:
 
     @staticmethod
     def get_by_id(db: Session, user_id: int) -> User | None:
-        """
-        根据用户ID查询用户
-        """
         return (
             db.query(User)
             .filter(User.id == user_id)
@@ -24,9 +21,6 @@ class UserService:
 
     @staticmethod
     def get_by_username(db: Session, username: str) -> User | None:
-        """
-        根据用户名查询用户
-        """
         return (
             db.query(User)
             .filter(User.username == username)
@@ -35,9 +29,6 @@ class UserService:
 
     @staticmethod
     def create(db: Session, user_data: UserCreate) -> User:
-        """
-        创建用户
-        """
         user = User(
             username=user_data.username,
             password_hash=get_password_hash(user_data.password),
@@ -56,20 +47,15 @@ class UserService:
         username: str,
         password: str,
     ) -> User | None:
-        """
-        用户登录认证
-        """
 
         user = UserService.get_by_username(
-            db,
-            username,
+            db=db,
+            username=username,
         )
 
-        # 用户不存在
-        if not user:
+        if user is None:
             return None
 
-        # 密码错误
         if not verify_password(
             password,
             user.password_hash,

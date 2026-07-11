@@ -7,5 +7,5 @@ llm = ChatOpenAI(
     api_key=settings.QWEN_API_KEY,
     base_url=settings.QWEN_BASE_URL,
     temperature=0.7,
-    streaming=False,
+    streaming=True,
 )
