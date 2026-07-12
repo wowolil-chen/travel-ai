@@ -2,9 +2,17 @@ import { Layout } from "antd";
 
 const { Sider, Content } = Layout;
 
-function ChatLayout({ sidebar, content }) {
+function ChatLayout({
+  sidebar,
+  header,
+  content,
+}) {
   return (
-    <Layout style={{ height: "100vh" }}>
+    <Layout
+      style={{
+        height: "100vh",
+      }}
+    >
       <Sider
         width={280}
         theme="light"
@@ -15,13 +23,20 @@ function ChatLayout({ sidebar, content }) {
         {sidebar}
       </Sider>
 
-      <Content
-        style={{
-          background: "#fff",
-        }}
-      >
-        {content}
-      </Content>
+      <Layout>
+        {header}
+
+        <Content
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            padding: 20,
+            background: "#f5f5f5",
+          }}
+        >
+          {content}
+        </Content>
+      </Layout>
     </Layout>
   );
 }

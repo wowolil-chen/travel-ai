@@ -1,74 +1,69 @@
 import { useState } from "react";
-import { Button, Input, Space } from "antd";
 
-function ChatInput({ setMessages, loading, setLoading }) {
-  const [message, setMessage] = useState("");
+import {
+  Button,
+  Input,
+} from "antd";
+
+import { SendOutlined } from "@ant-design/icons";
+
+const { TextArea } = Input;
+
+function ChatInput({
+  loading,
+  onSend,
+}) {
+  const [input, setInput] =
+    useState("");
 
   const handleSend = () => {
-    const content = message.trim();
+    if (!input.trim()) return;
 
-    if (!content || loading) {
-      return;
+    onSend(input);
+
+    setInput("");
+  };
+
+  const handleKeyDown = (e) => {
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
+      e.preventDefault();
+
+      handleSend();
     }
-
-    // 添加用户消息
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "user",
-        content,
-      },
-    ]);
-
-    setMessage("");
-
-    // 开始等待 AI 回复
-    setLoading(true);
-
-    // 模拟 AI 回复
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "这是模拟回复，下一步将由 DeepSeek 返回。",
-        },
-      ]);
-
-      setLoading(false);
-    }, 1000);
   };
 
   return (
     <div
       style={{
-        padding: 20,
-        borderTop: "1px solid #f0f0f0",
-        background: "#ffffff",
+        display: "flex",
+        gap: 12,
+        marginTop: 20,
       }}
     >
-      <Space.Compact
+      <TextArea
+        rows={3}
+        value={input}
+        placeholder="请输入旅游需求..."
+        onChange={(e) =>
+          setInput(e.target.value)
+        }
+        onKeyDown={handleKeyDown}
+      />
+
+      <Button
+        type="primary"
+        loading={loading}
+        icon={<SendOutlined />}
+        onClick={handleSend}
         style={{
-          width: "100%",
+          height: "auto",
         }}
       >
-        <Input
-          value={message}
-          placeholder="请输入你的问题..."
-          onChange={(e) => setMessage(e.target.value)}
-          onPressEnter={handleSend}
-          disabled={loading}
-        />
-
-        <Button
-          type="primary"
-          loading={loading}
-          disabled={loading}
-          onClick={handleSend}
-        >
-          发送
-        </Button>
-      </Space.Compact>
+        发送
+      </Button>
     </div>
   );
 }

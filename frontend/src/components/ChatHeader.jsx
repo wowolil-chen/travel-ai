@@ -1,9 +1,25 @@
 import { Avatar, Button, Space, Typography } from "antd";
-import { UserOutlined, LogoutOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+
+import { logout } from "../utils/storage";
 
 const { Title } = Typography;
 
 function ChatHeader() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+
+    navigate("/login", {
+      replace: true,
+    });
+  };
+
   return (
     <div
       style={{
@@ -16,18 +32,27 @@ function ChatHeader() {
         background: "#fff",
       }}
     >
-      <Title level={4} style={{ margin: 0 }}>
+      <Title
+        level={4}
+        style={{
+          margin: 0,
+        }}
+      >
         Travel AI
       </Title>
 
-      <Space>
-        <Avatar icon={<UserOutlined />} />
+      <Space size={16}>
+        <Avatar
+          size={40}
+          icon={<UserOutlined />}
+        />
 
         <span>管理员</span>
 
         <Button
           danger
           icon={<LogoutOutlined />}
+          onClick={handleLogout}
         >
           退出登录
         </Button>

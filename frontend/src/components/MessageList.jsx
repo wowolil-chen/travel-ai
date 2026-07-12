@@ -1,80 +1,84 @@
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useRef,
+} from "react";
 
-function MessageList({ messages, loading }) {
+import {
+  List,
+  Typography,
+} from "antd";
+
+const { Text } = Typography;
+
+function MessageList({
+  messages,
+}) {
   const bottomRef = useRef(null);
 
-  // 每次消息变化后自动滚动到底部
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: "smooth",
     });
-  }, [messages, loading]);
+  }, [messages]);
 
   return (
     <div
       style={{
         flex: 1,
-        padding: 24,
         overflowY: "auto",
-        background: "#f5f5f5",
+        paddingRight: 10,
       }}
     >
-      {messages.map((item, index) => (
-        <div
-          key={index}
-          style={{
-            display: "flex",
-            justifyContent:
-              item.role === "user"
-                ? "flex-end"
-                : "flex-start",
-            marginBottom: 20,
-          }}
-        >
-          <div
+      <List
+        dataSource={messages}
+        locale={{
+          emptyText: "开始聊天吧",
+        }}
+        renderItem={(item) => (
+          <List.Item
             style={{
-              maxWidth: "70%",
-              padding: "12px 16px",
-              borderRadius: 12,
-              background:
+              border: "none",
+              display: "flex",
+              justifyContent:
                 item.role === "user"
-                  ? "#1677ff"
-                  : "#ffffff",
-              color:
-                item.role === "user"
-                  ? "#ffffff"
-                  : "#000000",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  ? "flex-end"
+                  : "flex-start",
             }}
           >
-            {item.content}
-          </div>
-        </div>
-      ))}
+            <div
+              style={{
+                maxWidth: "70%",
+                background:
+                  item.role === "user"
+                    ? "#1677ff"
+                    : "#ffffff",
+                color:
+                  item.role === "user"
+                    ? "#ffffff"
+                    : "#000000",
+                padding: "12px 16px",
+                borderRadius: 12,
+                boxShadow:
+                  "0 2px 8px rgba(0,0,0,.08)",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    item.role === "user"
+                      ? "#ffffff"
+                      : "#000000",
+                }}
+              >
+                {item.content}
+              </Text>
+            </div>
+          </List.Item>
+        )}
+      />
 
-      {loading && (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-start",
-            marginBottom: 20,
-          }}
-        >
-          <div
-            style={{
-              padding: "12px 16px",
-              borderRadius: 12,
-              background: "#ffffff",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}
-          >
-            🤖 AI 正在思考...
-          </div>
-        </div>
-      )}
-
-      {/* 自动滚动锚点 */}
-      <div ref={bottomRef}></div>
+      <div ref={bottomRef} />
     </div>
   );
 }
