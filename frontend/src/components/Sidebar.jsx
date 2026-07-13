@@ -22,6 +22,7 @@ const { Title } = Typography;
 function Sidebar({
   currentConversationId,
   onConversationChange,
+  onConversationSelect,
 }) {
   const [conversations, setConversations] = useState([]);
 
@@ -119,9 +120,12 @@ function Sidebar({
               borderRadius: 6,
               padding: "8px 12px",
             }}
-            onClick={() =>
-              onConversationChange(item.id)
-            }
+            onClick={() => {
+              onConversationChange(item.id);
+              if (onConversationSelect) {
+                onConversationSelect();
+              }
+            }}
             actions={[
               <Popconfirm
                 title="确定删除吗？"

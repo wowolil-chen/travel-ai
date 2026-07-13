@@ -13,6 +13,8 @@ import {
 
 const { Sider, Content } = Layout;
 
+const MOBILE_BREAKPOINT = 768;
+
 export default function Chat() {
 
   const [messages, setMessages] = useState([]);
@@ -20,6 +22,34 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
 
   const [conversationId, setConversationId] = useState(null);
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    window.innerWidth < MOBILE_BREAKPOINT
+  );
+
+  const [isMobile, setIsMobile] = useState(
+    window.innerWidth < MOBILE_BREAKPOINT
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setSidebarCollapsed(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
 
   /**
    * 切换聊天
@@ -143,35 +173,70 @@ export default function Chat() {
       <Sider
         width={280}
         theme="light"
+        style={{
+          position: isMobile ? "fixed" : "relative",
+          zIndex: 1000,
+          height: "100vh",
+          transform: isMobile && sidebarCollapsed ? "translateX(-100%)" : "translateX(0)",
+          transition: "transform 0.3s ease",
+          boxShadow: "2px 0 8px rgba(0,0,0,.1)",
+        }}
       >
 
         <Sidebar
           currentConversationId={conversationId}
           onConversationChange={setConversationId}
+          onConversationSelect={() => {
+            if (isMobile) {
+              setSidebarCollapsed(true);
+            }
+          }}
         />
 
       </Sider>
 
-      <Layout>
+      {isMobile && !sidebarCollapsed && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,.5)",
+            zIndex: 999,
+            onClick: () => setSidebarCollapsed(true),
+          }}
+        />
+      )}
 
-        <ChatHeader />
+      <Layout
+        style={{
+          marginLeft: isMobile ? 0 : 280,
+        }}
+      >
+
+        <ChatHeader onMenuClick={toggleSidebar} isMobile={isMobile} />
 
         <Content
           style={{
             display: "flex",
             flexDirection: "column",
-            padding: 20,
+            padding: isMobile ? 10 : 20,
             background: "#f5f5f5",
+            minHeight: "calc(100vh - 64px)",
           }}
         >
 
           <MessageList
             messages={messages}
+            isMobile={isMobile}
           />
 
           <ChatInput
             loading={loading}
             onSend={handleSend}
+            isMobile={isMobile}
           />
 
         </Content>

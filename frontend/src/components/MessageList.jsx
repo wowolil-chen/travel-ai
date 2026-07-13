@@ -12,6 +12,7 @@ const { Text } = Typography;
 
 function MessageList({
   messages,
+  isMobile,
 }) {
   const bottomRef = useRef(null);
 
@@ -26,7 +27,7 @@ function MessageList({
       style={{
         flex: 1,
         overflowY: "auto",
-        paddingRight: 10,
+        paddingRight: isMobile ? 5 : 10,
       }}
     >
       <List
@@ -43,11 +44,12 @@ function MessageList({
                 item.role === "user"
                   ? "flex-end"
                   : "flex-start",
+              padding: isMobile ? "8px 0" : "12px 0",
             }}
           >
             <div
               style={{
-                maxWidth: "70%",
+                maxWidth: isMobile ? "85%" : "70%",
                 background:
                   item.role === "user"
                     ? "#1677ff"
@@ -56,11 +58,13 @@ function MessageList({
                   item.role === "user"
                     ? "#ffffff"
                     : "#000000",
-                padding: "12px 16px",
+                padding: isMobile ? "10px 14px" : "12px 16px",
                 borderRadius: 12,
                 boxShadow:
                   "0 2px 8px rgba(0,0,0,.08)",
                 whiteSpace: "pre-wrap",
+                fontSize: isMobile ? 14 : 15,
+                lineHeight: 1.5,
               }}
             >
               <Text

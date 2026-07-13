@@ -12,6 +12,7 @@ const { TextArea } = Input;
 function ChatInput({
   loading,
   onSend,
+  isMobile,
 }) {
   const [input, setInput] =
     useState("");
@@ -39,18 +40,21 @@ function ChatInput({
     <div
       style={{
         display: "flex",
-        gap: 12,
-        marginTop: 20,
+        gap: isMobile ? 8 : 12,
+        marginTop: isMobile ? 12 : 20,
       }}
     >
       <TextArea
-        rows={3}
+        rows={isMobile ? 2 : 3}
         value={input}
         placeholder="请输入旅游需求..."
         onChange={(e) =>
           setInput(e.target.value)
         }
         onKeyDown={handleKeyDown}
+        style={{
+          fontSize: isMobile ? 14 : 15,
+        }}
       />
 
       <Button
@@ -60,9 +64,11 @@ function ChatInput({
         onClick={handleSend}
         style={{
           height: "auto",
+          fontSize: isMobile ? 14 : 15,
+          padding: isMobile ? "8px 12px" : "12px 16px",
         }}
       >
-        发送
+        {isMobile ? "" : "发送"}
       </Button>
     </div>
   );

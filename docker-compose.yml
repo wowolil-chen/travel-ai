@@ -1,8 +1,10 @@
+version: "3.9"
+
 services:
+
   postgres:
     image: postgres:17
-    container_name: travel_ai_postgres
-
+    container_name: travel-ai-postgres
     restart: always
 
     environment:
@@ -11,16 +13,66 @@ services:
       POSTGRES_PASSWORD: 1qaz2wsX
 
     ports:
-      - "8202:5432"
+      - "8302:5432"
 
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # PostgreSQL 数据持久化
+      - postgres-data:/var/lib/postgresql/data
 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cgq -d travel_ai"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      # 首次启动自动执行数据库初始化脚本
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    networks:
+      - travel-ai
+
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: travel-ai-backend
+    restart: always
+
+    depends_on:
+      - postgres
+
+    ports:
+      - "8301:8000"
+
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: travel_ai
+      DATABASE_USER: cgq
+      DATABASE_PASSWORD: 1qaz2wsX
+
+    networks:
+      - travel-ai
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: travel-ai-frontend
+    restart: always
+
+    depends_on:
+      - backend
+
+    ports:
+      - "8300:80"
+
+    networks:
+      - travel-ai
+
+
+networks:
+  travel-ai:
+    driver: bridge
+
 
 volumes:
-  postgres_data:
+  postgres-data:
