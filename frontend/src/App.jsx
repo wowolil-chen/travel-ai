@@ -1,3 +1,4 @@
+import { App as AntApp } from "antd";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -9,6 +10,7 @@ import PublicRoute from "./router/PublicRoute";
 
 function App() {
   return (
+    <AntApp>
     <BrowserRouter>
       <Routes>
         {/* 首页 */}
@@ -48,6 +50,7 @@ function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </AntApp>
   );
 }
 

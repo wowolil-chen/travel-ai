@@ -28,7 +28,7 @@ request.interceptors.response.use(
 
       localStorage.removeItem("user");
 
-      window.location.href = "/login";
+      // 不在这里强制跳转，让组件自己处理错误显示
 
     }
 
