@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -18,6 +18,9 @@ import {
 
 import { register } from "../api/auth";
 import weBg from "../assets/we.jpg";
+import meBg from "../assets/me.jpg";
+
+const MOBILE_BREAKPOINT = 768;
 
 const { Title, Text } = Typography;
 
@@ -51,6 +54,17 @@ function Register() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isMobile, setIsMobile] = useState(
+    window.innerWidth < MOBILE_BREAKPOINT
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const onFinish = async (values) => {
     try {
@@ -106,7 +120,7 @@ function Register() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          backgroundImage: `url(${weBg})`,
+          backgroundImage: `url(${isMobile ? meBg : weBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
