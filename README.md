@@ -75,7 +75,7 @@ travel-ai
 ### Clone the repository
 
 ```bash
-git clone https://github.com/wowoli-chen/travel-ai.git
+git clone https://github.com/wowolil-chen/travel-ai.git
 cd travel-ai
 ```
 
