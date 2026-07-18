@@ -15,16 +15,16 @@ class UserService:
     def get_by_id(db: Session, user_id: int) -> User | None:
         return (
             db.query(User)
-            .filter(User.id == user_id)
-            .first()
+                .filter(User.id == user_id)
+                .first()
         )
 
     @staticmethod
     def get_by_username(db: Session, username: str) -> User | None:
         return (
             db.query(User)
-            .filter(User.username == username)
-            .first()
+                .filter(User.username == username)
+                .first()
         )
 
     @staticmethod
@@ -43,9 +43,9 @@ class UserService:
 
     @staticmethod
     def authenticate(
-        db: Session,
-        username: str,
-        password: str,
+            db: Session,
+            username: str,
+            password: str,
     ) -> User | None:
 
         user = UserService.get_by_username(
@@ -57,9 +57,24 @@ class UserService:
             return None
 
         if not verify_password(
-            password,
-            user.password_hash,
+                password,
+                user.password_hash,
         ):
             return None
 
         return user
+
+    @staticmethod
+    def update_login_ip(
+            db: Session,
+            user: User,
+            ip: str,
+    ) -> None:
+        """
+        更新最后登录IP
+        """
+        user.last_login_ip = ip
+
+        db.commit()
+
+        db.refresh(user)

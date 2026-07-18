@@ -1,33 +1,15 @@
 from fastapi import HTTPException
 from langchain_core.messages import (
-    SystemMessage,
-    HumanMessage,
     AIMessage,
+    HumanMessage,
 )
+
 from sqlalchemy.orm import Session
 
-from app.ai.model import llm
+from app.ai.agent import chat_with_tools
 from app.models.user import User
 from app.services.conversation_service import ConversationService
 from app.services.message_service import MessageService
-
-
-SYSTEM_PROMPT = """
-你是一名专业旅游规划助手。
-
-你的职责：
-
-1、回答旅游问题
-2、规划旅游路线
-3、推荐景点
-4、推荐美食
-5、推荐酒店
-6、推荐交通方案
-
-回答要自然、详细、有条理。
-
-如果不是旅游相关的问题，可以礼貌回答，但尽量把话题引导到旅游。
-"""
 
 
 class ChatService:
@@ -75,32 +57,28 @@ class ChatService:
             content=message,
         )
 
-        # 获取全部历史记录
+        # 获取历史消息
         history = MessageService.get_messages(
             db=db,
             conversation_id=conversation_id,
         )
 
         # 构建 LangChain Messages
-        messages = [
-            SystemMessage(
-                content=SYSTEM_PROMPT
-            )
-        ]
+        messages = []
 
         for item in history:
 
             if item.role == "user":
                 messages.append(
                     HumanMessage(
-                        content=item.content
+                        content=item.content,
                     )
                 )
 
             elif item.role == "assistant":
                 messages.append(
                     AIMessage(
-                        content=item.content
+                        content=item.content,
                     )
                 )
 
@@ -108,16 +86,11 @@ class ChatService:
 
         try:
 
-            # LangChain Streaming
-            async for chunk in llm.astream(messages):
+            async for chunk in chat_with_tools(messages):
 
-                if not chunk.content:
-                    continue
+                full_reply += chunk
 
-                full_reply += chunk.content
-
-                # 实时返回给前端
-                yield chunk.content
+                yield chunk
 
             # 保存 AI 回复
             if full_reply.strip():
@@ -129,7 +102,6 @@ class ChatService:
                     content=full_reply,
                 )
 
-                # 更新会话时间
                 ConversationService.touch(
                     db=db,
                     conversation=conversation,

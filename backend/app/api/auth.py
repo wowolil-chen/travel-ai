@@ -1,4 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token
@@ -31,7 +37,10 @@ def register(
     """
 
     # 用户名已存在
-    if UserService.get_by_username(db, user_data.username):
+    if UserService.get_by_username(
+        db,
+        user_data.username,
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="用户名已存在",
@@ -51,6 +60,7 @@ def register(
     response_model=Token,
 )
 def login(
+    request: Request,
     user_data: UserLogin,
     db: Session = Depends(get_db),
 ):
@@ -70,6 +80,21 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="用户名或密码错误",
         )
+
+    # 获取客户端 IP
+    client_ip = request.headers.get("X-Forwarded-For")
+
+    if client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    else:
+        client_ip = request.client.host
+
+    # 更新登录信息
+    UserService.update_login_ip(
+        db=db,
+        user=user,
+        ip=client_ip,
+    )
 
     # 生成 JWT
     access_token = create_access_token(

@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     QWEN_BASE_URL: str
     QWEN_MODEL: str
 
+    # QWeather
+    WEATHER_API_KEY: str
+    WEATHER_HOST: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",

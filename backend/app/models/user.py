@@ -1,4 +1,5 @@
 from sqlalchemy import DateTime, Integer, String, func
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -27,6 +28,12 @@ class User(Base):
 
     nickname: Mapped[str | None] = mapped_column(
         String(50),
+        nullable=True,
+    )
+
+    # 新增：最后登录IP
+    last_login_ip: Mapped[str | None] = mapped_column(
+        INET,
         nullable=True,
     )
 
