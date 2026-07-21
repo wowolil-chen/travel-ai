@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 from langchain.tools import tool
 
@@ -6,7 +6,7 @@ from app.core.config import settings
 
 
 @tool
-def weather_tool(location: str) -> str:
+async def weather_tool(location: str) -> str:
     """
     查询未来三天天气。
 
@@ -23,75 +23,77 @@ def weather_tool(location: str) -> str:
         拉萨市
     """
 
-    # =========================
-    # 查询 LocationID
-    # =========================
+    async with httpx.AsyncClient(timeout=10) as client:
 
-    geo_url = f"https://{settings.WEATHER_HOST}/geo/v2/city/lookup"
+        # =========================
+        # 查询 LocationID
+        # =========================
 
-    geo_resp = requests.get(
-        geo_url,
-        params={
-            "location": location,
-            "key": settings.WEATHER_API_KEY,
-        },
-        timeout=10,
-    )
+        geo_url = (
+            f"https://{settings.WEATHER_HOST}/geo/v2/city/lookup"
+        )
 
-    geo_data = geo_resp.json()
+        geo_resp = await client.get(
+            geo_url,
+            params={
+                "location": location,
+                "key": settings.WEATHER_API_KEY,
+            },
+        )
 
-    print("Geo API：", geo_data)
+        geo_data = geo_resp.json()
 
-    if geo_data.get("code") != "200":
-        return "天气查询失败，无法解析地点。"
+        print("Geo API：", geo_data)
 
-    locations = geo_data.get("location", [])
+        if geo_data.get("code") != "200":
+            return "天气查询失败，无法解析地点。"
 
-    if not locations:
-        return "没有找到对应天气地点。"
+        locations = geo_data.get("location", [])
 
-    place = locations[0]
+        if not locations:
+            return "没有找到对应天气地点。"
 
-    location_id = place["id"]
+        place = locations[0]
 
-    province = place["adm1"]
+        location_id = place["id"]
 
-    city = place["name"]
+        province = place["adm1"]
 
-    # =========================
-    # 查询天气
-    # =========================
+        city = place["name"]
 
-    weather_url = (
-        f"https://{settings.WEATHER_HOST}/v7/weather/3d"
-    )
+        # =========================
+        # 查询天气
+        # =========================
 
-    weather_resp = requests.get(
-        weather_url,
-        params={
-            "location": location_id,
-            "key": settings.WEATHER_API_KEY,
-        },
-        timeout=10,
-    )
+        weather_url = (
+            f"https://{settings.WEATHER_HOST}/v7/weather/3d"
+        )
 
-    weather_data = weather_resp.json()
+        weather_resp = await client.get(
+            weather_url,
+            params={
+                "location": location_id,
+                "key": settings.WEATHER_API_KEY,
+            },
+        )
 
-    print("Weather API：", weather_data)
+        weather_data = weather_resp.json()
 
-    if weather_data.get("code") != "200":
-        return "天气查询失败。"
+        print("Weather API：", weather_data)
 
-    daily = weather_data["daily"]
+        if weather_data.get("code") != "200":
+            return "天气查询失败。"
 
-    result = []
+        daily = weather_data["daily"]
 
-    result.append(f"{province}{city}未来三天天气：")
+        result = []
 
-    for day in daily:
+        result.append(f"{province}{city}未来三天天气：")
 
-        result.append(
-            f"""
+        for day in daily:
+
+            result.append(
+                f"""
 日期：{day['fxDate']}
 白天：{day['textDay']}
 夜晚：{day['textNight']}
@@ -101,6 +103,6 @@ def weather_tool(location: str) -> str:
 风力：{day['windScaleDay']}级
 湿度：{day['humidity']}%
 """.strip()
-        )
+            )
 
-    return "\n\n".join(result)
+        return "\n\n".join(result)

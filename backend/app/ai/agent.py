@@ -2,128 +2,108 @@ import json
 
 from langchain_core.messages import (
     AIMessage,
+    HumanMessage,
     SystemMessage,
-    ToolMessage,
 )
 
+from app.ai.executor import execute
 from app.ai.model import llm
+from app.ai.planner import plan
 from app.ai.prompts import SYSTEM_PROMPT
-from app.ai.tools import (
-    date_tool,
-    weather_tool,
-    location_tool,
-)
-
-tool_map = {
-    "date_tool": date_tool,
-    "location_tool": location_tool,
-    "weather_tool": weather_tool,
-}
 
 
 async def chat_with_tools(messages):
-    """
-    Agent
 
-    User
-      ↓
-    LLM
-      ↓
-    Tool
-      ↓
-    LLM
-      ↓
-    Tool
-      ↓
-    ...
-      ↓
-    最终回答
+    """
+    Planner
+        ↓
+    Executor
+        ↓
+    Final LLM
     """
 
     # ==========================
-    # 仅保留最近10条消息，提高响应速度
+    # 最近10条历史
     # ==========================
-    history_messages = messages[-10:]
 
-    messages = [
-        SystemMessage(content=SYSTEM_PROMPT),
-        *history_messages,
-    ]
+    history = messages[-10:]
 
-    while True:
+    # ==========================
+    # 用户最后一句
+    # ==========================
 
-        ai_message: AIMessage = await llm.ainvoke(messages)
+    last_user_message = ""
 
-        messages.append(ai_message)
+    for msg in reversed(history):
 
-        tool_calls = ai_message.tool_calls
+        if isinstance(msg, HumanMessage):
 
-        print("\n==============================")
-        print("Tool Calls:")
-        print(tool_calls)
-        print("==============================\n")
+            last_user_message = msg.content
 
-        # 没有工具调用，结束循环
-        if not tool_calls:
             break
 
-        for tool_call in tool_calls:
+    # ==========================
+    # Planner
+    # ==========================
 
-            tool_name = tool_call["name"]
-            tool_args = tool_call.get("args", {})
+    plan_result = await plan(last_user_message)
 
-            print(f"\n开始调用工具：{tool_name}")
-            print(f"参数：{tool_args}")
+    print("\n==============================")
+    print("Planner Result")
+    print(json.dumps(plan_result, ensure_ascii=False, indent=2))
+    print("==============================\n")
 
-            tool = tool_map.get(tool_name)
+    # ==========================
+    # Executor
+    # ==========================
 
-            if tool is None:
+    tool_results = await execute(plan_result)
 
-                result = {
-                    "success": False,
-                    "message": f"工具 {tool_name} 不存在。"
-                }
+    print("\n==============================")
+    print("Tool Results")
+    print(json.dumps(tool_results, ensure_ascii=False, indent=2))
+    print("==============================\n")
 
-            else:
+    # ==========================
+    # 构造最终 Prompt
+    # ==========================
 
-                try:
+    final_messages = [
 
-                    result = tool.invoke(tool_args)
+        SystemMessage(
+            content=SYSTEM_PROMPT,
+        )
 
-                    print("工具返回：")
-                    print(result)
+    ]
 
-                except Exception as e:
+    final_messages.extend(history)
 
-                    print("工具异常：")
-                    print(e)
+    if tool_results:
 
-                    result = {
-                        "success": False,
-                        "message": f"工具调用失败：{str(e)}"
-                    }
+        final_messages.append(
 
-            if isinstance(result, dict):
+            SystemMessage(
 
-                tool_content = json.dumps(
-                    result,
-                    ensure_ascii=False,
+                content=(
+                    "下面是工具返回的数据。\n"
+                    "请根据工具结果回答用户。\n\n"
+                    + json.dumps(
+                        tool_results,
+                        ensure_ascii=False,
+                        indent=2,
+                    )
                 )
 
-            else:
-
-                tool_content = str(result)
-
-            messages.append(
-                ToolMessage(
-                    content=tool_content,
-                    tool_call_id=tool_call["id"],
-                )
             )
 
-    print("\n开始最终回答...\n")
+        )
 
-    async for chunk in llm.astream(messages):
+    # ==========================
+    # Streaming
+    # ==========================
+
+    async for chunk in llm.astream(final_messages):
 
         if chunk.content:
+
             yield chunk.content

@@ -4,9 +4,9 @@ from langchain.tools import tool
 
 
 @tool
-def date_tool() -> str:
+async def date_tool() -> str:
     """
-    获取当前日期。
+    返回今天日期。
     """
 
     return datetime.now().strftime("%Y-%m-%d")

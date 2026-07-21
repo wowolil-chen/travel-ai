@@ -1,13 +1,13 @@
-import requests
 from collections import defaultdict
 
+import httpx
 from langchain.tools import tool
 
 from app.core.config import settings
 
 
 @tool
-def location_tool(keyword: str) -> dict:
+async def location_tool(keyword: str) -> dict:
     """
     查询地点。
 
@@ -22,18 +22,28 @@ def location_tool(keyword: str) -> dict:
 
     url = f"{settings.AMAP_BASE_URL}/v5/place/text"
 
-    response = requests.get(
-        url,
-        params={
-            "key": settings.AMAP_API_KEY,
-            "keywords": keyword,
-            "page_size": 10,
-            "page_num": 1,
-        },
-        timeout=10,
-    )
+    try:
 
-    data = response.json()
+        async with httpx.AsyncClient(timeout=10) as client:
+
+            response = await client.get(
+                url,
+                params={
+                    "key": settings.AMAP_API_KEY,
+                    "keywords": keyword,
+                    "page_size": 10,
+                    "page_num": 1,
+                },
+            )
+
+            data = response.json()
+
+    except Exception as e:
+
+        return {
+            "success": False,
+            "message": f"高德地图请求失败：{str(e)}"
+        }
 
     print("AMap 返回：", data)
 
@@ -41,7 +51,7 @@ def location_tool(keyword: str) -> dict:
 
         return {
             "success": False,
-            "message": "高德地图查询失败。"
+            "message": data.get("info", "高德地图查询失败。")
         }
 
     pois = data.get("pois", [])
@@ -54,7 +64,7 @@ def location_tool(keyword: str) -> dict:
         }
 
     # =============================
-    # 按 行政区 分组
+    # 按行政区分组
     # =============================
 
     area_map = defaultdict(list)
@@ -89,9 +99,11 @@ def location_tool(keyword: str) -> dict:
         if location:
 
             try:
+
                 longitude, latitude = location.split(",")
 
             except ValueError:
+
                 pass
 
         return {
