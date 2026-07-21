@@ -1,7 +1,10 @@
 from langchain_openai import ChatOpenAI
 
-from app.ai.tools.date_tool import date_tool
-from app.ai.tools.weather_tool import weather_tool
+from app.ai.tools import (
+    date_tool,
+    location_tool,
+    weather_tool,
+)
 from app.core.config import settings
 
 llm = ChatOpenAI(
@@ -13,8 +16,9 @@ llm = ChatOpenAI(
 )
 
 tools = [
-    weather_tool,
     date_tool,
+    location_tool,
+    weather_tool,
 ]
 
 llm = llm.bind_tools(tools)

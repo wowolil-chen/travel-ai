@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     WEATHER_API_KEY: str
     WEATHER_HOST: str
 
+    # AMap
+    AMAP_API_KEY: str
+    AMAP_BASE_URL: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",

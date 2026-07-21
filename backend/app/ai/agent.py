@@ -1,3 +1,5 @@
+import json
+
 from langchain_core.messages import (
     AIMessage,
     SystemMessage,
@@ -9,10 +11,12 @@ from app.ai.prompts import SYSTEM_PROMPT
 from app.ai.tools import (
     date_tool,
     weather_tool,
+    location_tool,
 )
 
 tool_map = {
     "date_tool": date_tool,
+    "location_tool": location_tool,
     "weather_tool": weather_tool,
 }
 
@@ -21,21 +25,19 @@ async def chat_with_tools(messages):
     """
     Agent
 
-    流程：
-
     User
       ↓
     LLM
-      ↓
-    判断是否调用 Tool
       ↓
     Tool
       ↓
     LLM
       ↓
-    如果还有 Tool 继续循环
+    Tool
       ↓
-    最终 Streaming 输出
+    ...
+      ↓
+    最终回答
     """
 
     messages = [
@@ -43,7 +45,6 @@ async def chat_with_tools(messages):
         *messages,
     ]
 
-    # Tool Calling 循环
     while True:
 
         ai_message: AIMessage = await llm.ainvoke(messages)
@@ -52,17 +53,15 @@ async def chat_with_tools(messages):
 
         tool_calls = ai_message.tool_calls
 
-        # ===== 调试输出 =====
         print("\n==============================")
         print("Tool Calls:")
         print(tool_calls)
         print("==============================\n")
 
-        # 没有 Tool，结束循环
+        # 没有工具调用，结束循环
         if not tool_calls:
             break
 
-        # 执行所有 Tool
         for tool_call in tool_calls:
 
             tool_name = tool_call["name"]
@@ -75,7 +74,10 @@ async def chat_with_tools(messages):
 
             if tool is None:
 
-                result = f"工具 {tool_name} 不存在。"
+                result = {
+                    "success": False,
+                    "message": f"工具 {tool_name} 不存在。"
+                }
 
             else:
 
@@ -91,19 +93,35 @@ async def chat_with_tools(messages):
                     print("工具异常：")
                     print(e)
 
-                    result = f"工具 {tool_name} 调用失败：{str(e)}"
+                    result = {
+                        "success": False,
+                        "message": f"工具调用失败：{str(e)}"
+                    }
+
+            # ToolMessage 一律发送 JSON 字符串
+            if isinstance(result, dict):
+
+                tool_content = json.dumps(
+                    result,
+                    ensure_ascii=False
+                )
+
+            else:
+
+                tool_content = str(result)
 
             messages.append(
                 ToolMessage(
-                    content=result,
+                    content=tool_content,
                     tool_call_id=tool_call["id"],
                 )
             )
 
     print("\n开始最终回答...\n")
 
-    # Tool 全部执行完成，再流式输出最终回答
     async for chunk in llm.astream(messages):
 
-        if chunk.content:
+        print(chunk)
+
+        if getattr(chunk, "content", None):
             yield chunk.content

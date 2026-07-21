@@ -6,50 +6,62 @@ from app.core.config import settings
 
 
 @tool
-def weather_tool(city: str) -> str:
+def weather_tool(location: str) -> str:
     """
     查询未来三天天气。
 
     参数：
-        city：城市名称，例如广州、北京、上海。
+        location：地点名称。
 
-    返回：
-        天气描述。
+    推荐传入：
+        区县 > 城市 > 省份
+
+    例如：
+        祁连县
+        广州市
+        林芝市
+        拉萨市
     """
 
-    # 城市查询
-    city_url = (
-        f"https://{settings.WEATHER_HOST}/geo/v2/city/lookup"
-    )
+    # =========================
+    # 查询 LocationID
+    # =========================
 
-    city_resp = requests.get(
-        city_url,
+    geo_url = f"https://{settings.WEATHER_HOST}/geo/v2/city/lookup"
+
+    geo_resp = requests.get(
+        geo_url,
         params={
-            "location": city,
+            "location": location,
             "key": settings.WEATHER_API_KEY,
         },
         timeout=10,
     )
 
-    city_data = city_resp.json()
+    geo_data = geo_resp.json()
 
-    print("Geo API 返回：", city_data)
+    print("Geo API：", geo_data)
 
-    if city_data.get("code") != "200":
-        return f"城市查询失败：{city_data}"
+    if geo_data.get("code") != "200":
+        return "天气查询失败，无法解析地点。"
 
-    locations = city_data.get("location")
+    locations = geo_data.get("location", [])
 
     if not locations:
-        return f"没有找到城市：{city}"
+        return "没有找到对应天气地点。"
 
-    location = locations[0]
+    place = locations[0]
 
-    location_id = location["id"]
-    city_name = location["name"]
-    province = location["adm1"]
+    location_id = place["id"]
 
+    province = place["adm1"]
+
+    city = place["name"]
+
+    # =========================
     # 查询天气
+    # =========================
+
     weather_url = (
         f"https://{settings.WEATHER_HOST}/v7/weather/3d"
     )
@@ -65,18 +77,30 @@ def weather_tool(city: str) -> str:
 
     weather_data = weather_resp.json()
 
-    print("Weather API 返回：", weather_data)
+    print("Weather API：", weather_data)
 
     if weather_data.get("code") != "200":
-        return f"天气查询失败：{weather_data}"
+        return "天气查询失败。"
 
-    today = weather_data["daily"][0]
+    daily = weather_data["daily"]
 
-    return (
-        f"{province}{city_name}今日天气："
-        f"{today['textDay']}，"
-        f"温度 {today['tempMin']}～{today['tempMax']}℃，"
-        f"白天风向 {today['windDirDay']}，"
-        f"风力 {today['windScaleDay']}级，"
-        f"湿度 {today['humidity']}%。"
-    )
+    result = []
+
+    result.append(f"{province}{city}未来三天天气：")
+
+    for day in daily:
+
+        result.append(
+            f"""
+日期：{day['fxDate']}
+白天：{day['textDay']}
+夜晚：{day['textNight']}
+温度：{day['tempMin']}～{day['tempMax']}℃
+降水概率：{day['precip']}%
+风向：{day['windDirDay']}
+风力：{day['windScaleDay']}级
+湿度：{day['humidity']}%
+""".strip()
+        )
+
+    return "\n\n".join(result)
