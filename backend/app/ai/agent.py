@@ -40,9 +40,14 @@ async def chat_with_tools(messages):
     最终回答
     """
 
+    # ==========================
+    # 仅保留最近10条消息，提高响应速度
+    # ==========================
+    history_messages = messages[-10:]
+
     messages = [
         SystemMessage(content=SYSTEM_PROMPT),
-        *messages,
+        *history_messages,
     ]
 
     while True:
@@ -98,12 +103,11 @@ async def chat_with_tools(messages):
                         "message": f"工具调用失败：{str(e)}"
                     }
 
-            # ToolMessage 一律发送 JSON 字符串
             if isinstance(result, dict):
 
                 tool_content = json.dumps(
                     result,
-                    ensure_ascii=False
+                    ensure_ascii=False,
                 )
 
             else:
@@ -121,7 +125,5 @@ async def chat_with_tools(messages):
 
     async for chunk in llm.astream(messages):
 
-        print(chunk)
-
-        if getattr(chunk, "content", None):
+        if chunk.content:
             yield chunk.content
