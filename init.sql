@@ -1,9 +1,3 @@
--- 初始化清理（重复执行不会报错）
-DROP TABLE IF EXISTS messages;
-DROP TABLE IF EXISTS conversations;
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS alembic_version;
-
 create table alembic_version
 (
     version_num varchar(32) not null
@@ -19,6 +13,7 @@ create table users
         unique,
     password_hash varchar(255)            not null,
     nickname      varchar(50),
+    last_login_ip inet,
     created_at    timestamp default now() not null,
     updated_at    timestamp default now() not null
 );
@@ -46,3 +41,5 @@ create table messages
     content         text                    not null,
     created_at      timestamp default now() not null
 );
+
+
