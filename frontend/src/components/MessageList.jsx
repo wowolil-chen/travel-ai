@@ -13,6 +13,7 @@ const { Text } = Typography;
 function MessageList({
   messages,
   isMobile,
+  loading,
 }) {
   const bottomRef = useRef(null);
 
@@ -35,7 +36,7 @@ function MessageList({
         locale={{
           emptyText: "开始聊天吧",
         }}
-        renderItem={(item) => (
+        renderItem={(item, index) => (
           <List.Item
             style={{
               border: "none",
@@ -47,6 +48,18 @@ function MessageList({
               padding: isMobile ? "8px 0" : "12px 0",
             }}
           >
+            {(() => {
+              const isThinking =
+                loading &&
+                index === messages.length - 1 &&
+                item.role === "assistant" &&
+                !item.content;
+
+              const content = isThinking
+                ? "AI正在玩命思考中，请稍等..."
+                : item.content;
+
+              return (
             <div
               style={{
                 maxWidth: isMobile ? "85%" : "70%",
@@ -72,12 +85,18 @@ function MessageList({
                   color:
                     item.role === "user"
                       ? "#ffffff"
-                      : "#000000",
+                      : isThinking
+                        ? "rgba(0,0,0,.45)"
+                        : "#000000",
+                  fontStyle:
+                    isThinking ? "italic" : "normal",
                 }}
               >
-                {item.content}
+                {content}
               </Text>
             </div>
+              );
+            })()}
           </List.Item>
         )}
       />

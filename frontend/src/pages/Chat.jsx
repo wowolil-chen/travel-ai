@@ -231,6 +231,7 @@ export default function Chat() {
           <MessageList
             messages={messages}
             isMobile={isMobile}
+            loading={loading}
           />
 
           <ChatInput
