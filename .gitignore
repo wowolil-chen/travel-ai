@@ -6,7 +6,7 @@ backend/__pycache__/
 backend/**/*.pyc
 backend/.pytest_cache/
 
-# 完整忽略 alembic migrations 全部文件
+# 完整忽略 alembic 迁移生成目录（保留根目录 alembic.ini 配置文件）
 backend/migrations/
 
 # Environment
@@ -34,3 +34,6 @@ Thumbs.db
 # Logs
 # =========================
 *.log
+
+# 项目目录树文件，不需要提交
+tree.txt
