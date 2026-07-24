@@ -6,6 +6,9 @@ backend/__pycache__/
 backend/**/*.pyc
 backend/.pytest_cache/
 
+# 完整忽略 alembic migrations 全部文件
+backend/migrations/
+
 # Environment
 backend/.env
 
